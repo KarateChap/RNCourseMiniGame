@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Alert, View } from "react-native";
+import { Alert, View, FlatList } from "react-native";
 import Card from "~/components/Card";
 import NumberContainer from "~/components/game/NumberContainer";
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
 import Title from "~/components/ui/Title";
 import { Ionicons } from "@expo/vector-icons";
+import GuessLogItem from "~/components/game/GuessLogItem";
 
 const generateRandomBetween = (min: number, max: number, exclude: number) => {
   const rndNum = Math.floor(Math.random() * (max - min)) + min;
@@ -19,7 +20,7 @@ const generateRandomBetween = (min: number, max: number, exclude: number) => {
 
 type GameScreenProps = {
   userNumber: number;
-  onGameOver: () => void;
+  onGameOver: (guessRounds: number) => void;
 };
 
 let minBoundary = 1;
@@ -32,7 +33,7 @@ const GameScreen = ({ userNumber, onGameOver }: GameScreenProps) => {
 
   useEffect(() => {
     if (currentGuess === userNumber) {
-      onGameOver();
+      onGameOver(guessRounds.length);
     }
   }, [currentGuess, userNumber, onGameOver]);
 
@@ -67,8 +68,10 @@ const GameScreen = ({ userNumber, onGameOver }: GameScreenProps) => {
     setGuessRounds((prevGuessRounds) => [newRndNumber, ...prevGuessRounds]);
   };
 
+  const guessRoundsListLength = guessRounds.length;
+
   return (
-    <View className="flex-1 justify-center items-center gap-3">
+    <View className="flex-1 justify-center items-center gap-3 px-5">
       <Title>Opponent's Guess</Title>
       <NumberContainer>{currentGuess}</NumberContainer>
       <Card>
@@ -95,11 +98,19 @@ const GameScreen = ({ userNumber, onGameOver }: GameScreenProps) => {
           </Button>
         </View>
       </Card>
-      <View>
-        {guessRounds.map((guessRound) => (
-          <Text key={guessRound}>{guessRound}</Text>
-        ))}
-      </View>
+
+      <FlatList
+        className="grow-0 h-[300px]"
+        data={guessRounds}
+        renderItem={(itemData) => (
+          <GuessLogItem
+            roundNumber={guessRoundsListLength - itemData.index}
+            guess={itemData.item}
+          />
+        )}
+        keyExtractor={(item) => item.toString()}
+        ItemSeparatorComponent={() => <View className="h-2" />}
+      />
     </View>
   );
 };
